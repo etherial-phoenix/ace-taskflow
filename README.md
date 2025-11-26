@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://ace.phoenix-eternal.co.uk) and start prompting.
+Simply visit the [Aced Eternal](https://ace.phoenix-eternal.co.uk) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
