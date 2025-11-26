@@ -22,7 +22,7 @@ export class TaskCreate extends OpenAPIRoute {
 					"application/json": {
 						schema: z.object({
 							series: z.object({
-								success: Bool(),
+								success: z.boolean(),
 								result: z.object({
 									task: Task,
 								}),
@@ -47,11 +47,14 @@ export class TaskCreate extends OpenAPIRoute {
 		return {
 			success: true,
 			task: {
-				name: taskToCreate.name,
-				slug: taskToCreate.slug,
+				title: taskToCreate.title,
+				slug: taskToCreate.title.toLowerCase().replace(/ /g, "-"),
 				description: taskToCreate.description,
 				completed: taskToCreate.completed,
 				due_date: taskToCreate.due_date,
+				user_id: taskToCreate.user_id,
+				priority: taskToCreate.priority,
+				project_id: taskToCreate.project_id,
 			},
 		};
 	}

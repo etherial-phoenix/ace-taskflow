@@ -33,6 +33,7 @@ export const TaskDialog = ({ open, onOpenChange, onSuccess, projects }: TaskDial
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("medium");
   const [projectId, setProjectId] = useState<string>("");
+  const [dueDate, setDueDate] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,26 +46,39 @@ export const TaskDialog = ({ open, onOpenChange, onSuccess, projects }: TaskDial
       return;
     }
 
-    const { error } = await supabase.from("tasks").insert({
-      user_id: user.id,
-      title,
-      description,
-      priority,
-      project_id: projectId || null,
-    });
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          priority,
+          project_id: projectId || null,
+          user_id: user.id,
+          due_date: dueDate || null,
+        }),
+      });
 
-    if (error) {
-      toast.error("Error creating task");
-    } else {
+      if (!response.ok) {
+        throw new Error("Failed to create task");
+      }
+
       toast.success("Task created successfully!");
       setTitle("");
       setDescription("");
       setPriority("medium");
       setProjectId("");
+      setDueDate("");
       onOpenChange(false);
       onSuccess();
+    } catch (error) {
+      toast.error("Error creating task");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -97,18 +111,29 @@ export const TaskDialog = ({ open, onOpenChange, onSuccess, projects }: TaskDial
               rows={3}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="task-priority">Priority</Label>
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger id="task-priority">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="task-priority">Priority</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger id="task-priority">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="task-due-date">Due Date (Optional)</Label>
+              <Input
+                id="task-due-date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
           </div>
           {projects.length > 0 && (
             <div className="space-y-2">

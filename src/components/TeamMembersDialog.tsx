@@ -58,7 +58,7 @@ export const TeamMembersDialog = ({ open, onOpenChange, teamId, teamName, userRo
     const { data: profiles, error: profileError } = await supabase
       .from("profiles")
       .select("id")
-      .ilike("full_name", `%${email}%`)
+      .ilike("email", `%${email}%`)
       .limit(1);
 
     if (profileError || !profiles || profiles.length === 0) {
@@ -67,38 +67,49 @@ export const TeamMembersDialog = ({ open, onOpenChange, teamId, teamName, userRo
       return;
     }
 
-    const { error } = await supabase
-      .from("team_members")
-      .insert({
-        team_id: teamId,
-        user_id: profiles[0].id,
-        role,
+    try {
+      const response = await fetch(`/api/teams/${teamId}/members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: profiles[0].id,
+          role,
+        }),
       });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+      if (!response.ok) {
+        throw new Error("Failed to add member");
+      }
+
       toast.success("Member added successfully!");
       setEmail("");
       setRole("member");
       fetchMembers();
+    } catch (error) {
+      toast.error("Error adding member");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRemoveMember = async (memberId: string) => {
     if (!confirm("Remove this member from the team?")) return;
 
-    const { error } = await supabase
-      .from("team_members")
-      .delete()
-      .eq("id", memberId);
+    try {
+      const response = await fetch(`/api/teams/${teamId}/members/${memberId}`, {
+        method: "DELETE",
+      });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+      if (!response.ok) {
+        throw new Error("Failed to remove member");
+      }
+
       toast.success("Member removed successfully!");
       fetchMembers();
+    } catch (error) {
+      toast.error("Error removing member");
     }
   };
 
@@ -118,12 +129,12 @@ export const TeamMembersDialog = ({ open, onOpenChange, teamId, teamName, userRo
           <form onSubmit={handleAddMember} className="space-y-4 p-4 bg-muted/30 rounded-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">User Name/Email</Label>
+                <Label htmlFor="email">User Email</Label>
                 <Input
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Search by name..."
+                  placeholder="Search by email..."
                   required
                 />
               </div>
