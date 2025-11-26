@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,11 @@ interface ProjectDialogProps {
   onSuccess: () => void;
 }
 
+interface Team {
+  id: string;
+  name: string;
+}
+
 const colors = [
   { name: "Amber", value: "#F59E0B" },
   { name: "Orange", value: "#F97316" },
@@ -40,6 +45,26 @@ export const ProjectDialog = ({ open, onOpenChange, onSuccess }: ProjectDialogPr
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(colors[0].value);
+  const [teamId, setTeamId] = useState<string>("");
+  const [teams, setTeams] = useState<Team[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      fetchTeams();
+    }
+  }, [open]);
+
+  const fetchTeams = async () => {
+    const { data, error } = await supabase
+      .from("teams")
+      .select("id, name");
+
+    if (error) {
+      console.error("Error fetching teams:", error);
+    } else {
+      setTeams(data as Team[]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +82,7 @@ export const ProjectDialog = ({ open, onOpenChange, onSuccess }: ProjectDialogPr
       name,
       description,
       color,
+      team_id: teamId || null,
     });
 
     if (error) {
@@ -66,6 +92,7 @@ export const ProjectDialog = ({ open, onOpenChange, onSuccess }: ProjectDialogPr
       setName("");
       setDescription("");
       setColor(colors[0].value);
+      setTeamId("");
       onOpenChange(false);
       onSuccess();
     }
@@ -118,6 +145,22 @@ export const ProjectDialog = ({ open, onOpenChange, onSuccess }: ProjectDialogPr
                       />
                       <span>{c.name}</span>
                     </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="project-team">Team (Optional)</Label>
+            <Select value={teamId} onValueChange={setTeamId}>
+              <SelectTrigger id="project-team">
+                <SelectValue placeholder="Personal project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Personal project</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
                   </SelectItem>
                 ))}
               </SelectContent>

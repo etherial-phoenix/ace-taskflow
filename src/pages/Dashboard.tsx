@@ -3,12 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, LogOut, FolderKanban, CheckSquare, Clock } from "lucide-react";
+import { Plus, LogOut, FolderKanban, CheckSquare, Clock, Users } from "lucide-react";
 import { toast } from "sonner";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { TaskDialog } from "@/components/TaskDialog";
 import { ProjectCard } from "@/components/ProjectCard";
 import { TaskList } from "@/components/TaskList";
+import { TeamDialog } from "@/components/TeamDialog";
+import { TeamCard } from "@/components/TeamCard";
+import { TeamMembersDialog } from "@/components/TeamMembersDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Profile {
   id: string;
@@ -35,14 +39,26 @@ interface Task {
   projects: { name: string; color: string } | null;
 }
 
+interface Team {
+  id: string;
+  name: string;
+  description: string | null;
+  memberCount: number;
+  role: string;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<{ id: string; name: string; role: string } | null>(null);
+  const [teamMembersOpen, setTeamMembersOpen] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -66,6 +82,7 @@ const Dashboard = () => {
     await fetchProfile(session.user.id);
     await fetchProjects();
     await fetchTasks();
+    await fetchTeams();
     setLoading(false);
   };
 
@@ -112,6 +129,35 @@ const Dashboard = () => {
     }
   };
 
+  const fetchTeams = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: teamsData } = await supabase
+      .from("team_members")
+      .select("team_id, role, teams(id, name, description)")
+      .eq("user_id", user.id);
+
+    const teamsWithCounts = await Promise.all(
+      (teamsData || []).map(async (teamMember: any) => {
+        const { count } = await supabase
+          .from("team_members")
+          .select("*", { count: "exact", head: true })
+          .eq("team_id", teamMember.team_id);
+
+        return {
+          id: teamMember.teams.id,
+          name: teamMember.teams.name,
+          description: teamMember.teams.description,
+          memberCount: count || 0,
+          role: teamMember.role,
+        };
+      })
+    );
+
+    setTeams(teamsWithCounts);
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -154,7 +200,7 @@ const Dashboard = () => {
       </nav>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="shadow-card border-border/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -193,10 +239,29 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
+
+          <Card className="shadow-card border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Teams</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{teams.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Collaboration spaces
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
+        <Tabs defaultValue="projects" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="teams">Teams</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="projects">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-display font-bold">Projects</h2>
               <Button onClick={() => setProjectDialogOpen(true)} size="sm">
@@ -221,9 +286,9 @@ const Dashboard = () => {
                 </Card>
               )}
             </div>
-          </div>
+          </TabsContent>
 
-          <div>
+          <TabsContent value="tasks">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-display font-bold">Recent Tasks</h2>
               <Button onClick={() => setTaskDialogOpen(true)} size="sm">
@@ -232,8 +297,39 @@ const Dashboard = () => {
               </Button>
             </div>
             <TaskList tasks={tasks} onUpdate={fetchTasks} />
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="teams">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-display font-bold">Teams</h2>
+              <Button onClick={() => setTeamDialogOpen(true)} size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                New Team
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {teams.map((team) => (
+                <TeamCard
+                  key={team.id}
+                  {...team}
+                  onDelete={fetchTeams}
+                  onManage={() => {
+                    setSelectedTeam({ id: team.id, name: team.name, role: team.role });
+                    setTeamMembersOpen(true);
+                  }}
+                />
+              ))}
+            </div>
+            {teams.length === 0 && (
+              <Card className="p-8 text-center border-dashed">
+                <p className="text-muted-foreground mb-4">No teams yet</p>
+                <Button onClick={() => setTeamDialogOpen(true)} variant="outline">
+                  Create your first team
+                </Button>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <ProjectDialog
@@ -247,6 +343,20 @@ const Dashboard = () => {
         onSuccess={fetchTasks}
         projects={projects}
       />
+      <TeamDialog
+        open={teamDialogOpen}
+        onOpenChange={setTeamDialogOpen}
+        onSuccess={fetchTeams}
+      />
+      {selectedTeam && (
+        <TeamMembersDialog
+          open={teamMembersOpen}
+          onOpenChange={setTeamMembersOpen}
+          teamId={selectedTeam.id}
+          teamName={selectedTeam.name}
+          userRole={selectedTeam.role}
+        />
+      )}
     </div>
   );
 };
