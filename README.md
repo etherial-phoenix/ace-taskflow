@@ -1,18 +1,18 @@
-# Welcome to your Lovable project
+# Welcome to Phoenix
 
 ## Project info
 
-**URL**: https://ace.phoenix-eternal.co.uk
+**URL**: https://ace.phoenix.pm
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
+**Use Gemini**
 
-Simply visit the [Aced Eternal](https://ace.phoenix-eternal.co.uk) and start prompting.
+Simply visit the [Phoenix](https://ace.phoenix.pm) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
+Changes made via Gemini will be committed automatically to this repo.
 
 **Use your preferred IDE**
 

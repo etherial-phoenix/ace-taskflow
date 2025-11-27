@@ -23,14 +23,14 @@ const Index = () => {
         <div className="container mx-auto relative z-10">
           <div className="max-w-3xl mx-auto text-center animate-in">
             <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 leading-tight">
-              Project Management
+              Rise Above
               <span className="block bg-gradient-warm bg-clip-text text-transparent">
-                Reimagined
+                Your Project Challenges
               </span>
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Streamline your workflow, boost productivity, and bring your team together
-              with FlowPro's intuitive project management platform.
+              with Phoenix's intuitive project management platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
@@ -108,7 +108,7 @@ const Index = () => {
                 Ready to boost your productivity?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of teams already using FlowPro to streamline their workflow and achieve their goals.
+                Join thousands of teams already using Phoenix to streamline their workflow and achieve their goals.
               </p>
               <Link to="/auth">
                 <Button size="lg" className="shadow-glow">
@@ -122,7 +122,7 @@ const Index = () => {
 
       <footer className="border-t border-border/50 py-8 px-4">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>&copy; 2025 FlowPro. All rights reserved.</p>
+          <p>&copy; 2025 Phoenix. All rights reserved.</p>
         </div>
       </footer>
     </div>

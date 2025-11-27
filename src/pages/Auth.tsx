@@ -118,22 +118,38 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-display font-bold mb-2 bg-gradient-warm bg-clip-text text-transparent">
-            FlowPro
-          </h1>
-          <p className="text-muted-foreground">Welcome back to your workspace</p>
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="hidden bg-muted lg:flex items-center justify-center">
+        <div className="text-center">
+        <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="100"
+              height="100"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-20 h-20 text-primary mx-auto"
+            >
+              <path d="M12 10.5c-1.2 1.2-1.2 3.1 0 4.2.8.8 2.1.8 2.8 0l1.4-1.4c.8-.8.8-2.1 0-2.8-1.2-1.2-3.1-1.2-4.2 0Z" />
+              <path d="M10.5 12c-1.2-1.2-1.2-3.1 0-4.2.8-.8 2.1-.8 2.8 0l1.4 1.4c.8.8.8 2.1 0 2.8-1.2 1.2-3.1 1.2-4.2 0Z" />
+              <path d="M12 2a10 10 0 1 0 10 10" />
+            </svg>
+          <h1 className="text-4xl font-display font-bold mt-4">Phoenix</h1>
+          <p className="text-muted-foreground mt-2">The ultimate project management platform</p>
         </div>
-
-        <Card className="shadow-card border-border/50">
-          <CardHeader>
-            <CardTitle>Get Started</CardTitle>
-            <CardDescription>Sign in to your account or create a new one</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <h1 className="text-3xl font-bold">Get Started</h1>
+            <p className="text-balance text-muted-foreground">
+              Sign in to your account or create a new one
+            </p>
+          </div>
+          <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -262,8 +278,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
